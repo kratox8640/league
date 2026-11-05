@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" data-own>
 <title data-own>곡선중 학교스포츠클럽 리그</title>
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#13306E">
+<meta name="theme-color" content="#13306E"><meta name="description" content="곡선중학교 학교스포츠클럽 리그: 피구, 배드민턴, E-스포츠 경기 결과와 학년별 종합 순위">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="스포츠리그">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+
+
 <link rel="preconnect" href="https://fonts.googleapis.com" data-own>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin data-own>
 <link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap" rel="stylesheet" data-own>
@@ -707,7 +707,7 @@ async function initDb(){
     if(UI.tab==="es" && ae && ae.dataset && ae.dataset.esp!==undefined) updateEsView(UI.grade);
     else if(UI.tab==="es"||UI.tab==="total") render();
   });
-  if(S.sheet){ db.emit(); setSync(S.canWrite?"구글 시트에 저장 중":"구글 시트 결과 (보기 전용)"); setInterval(()=>{ db.pull().catch(()=>{}); }, S.canWrite?15000:30000); }
+  if(S.sheet){ db.emit(); setSync(S.canWrite?"구글 시트 연결됨 · 입력 대기":"구글 시트 결과 (보기 전용)"); setInterval(()=>{ db.pull().catch(()=>setSync("시트 연결 지연 · 다시 연결 중")); }, S.canWrite?15000:30000); }
 }
 
 /* ---------- Google Sheets (Apps Script) backend ---------- */
@@ -727,7 +727,7 @@ function makeSheetDb(url){
     Object.keys(colSubs).forEach(col=>{ const docs=Object.keys(cache).filter(k=>k.startsWith(col+"/")).map(k=>({id:k.slice(col.length+1), data:()=>cache[k]})); colSubs[col]({docs}); });
   }
   async function pull(){
-    const r=await fetch(url+(url.includes("?")?"&":"?")+"action=all&t="+Date.now());
+    const r=await fetch(url+(url.includes("?")?"&":"?")+"action=all&t="+Date.now(), {signal:AbortSignal.timeout(12000),cache:"no-store"});
     const j=await r.json(); if(!j.ok) throw new Error(j.error||"sheet");
     const raw=JSON.stringify(j.docs||{}); if(raw===lastRaw) return; lastRaw=raw;
     cache=j.docs||{}; emit();
@@ -1571,7 +1571,7 @@ document.addEventListener("click",e=>{
   if(t.dataset.tab){ UI.tab=t.dataset.tab; render(); return; }
   if(t.hasAttribute("data-export")){ exportFile(t); return; }
   if(t.hasAttribute("data-save-csv")){ exportCsv(); return; }
-  if(t.hasAttribute("data-token-save")){ const v=(document.getElementById("tokenIn")||{}).value||""; if(!v.trim()){ toast("비밀번호를 입력해 주세요."); return; } try{ localStorage.setItem(TOKEN_KEY,v.trim()); }catch(e){} S.needToken=false; render(); toast("저장했습니다. 이제 점수가 구글 시트에 저장됩니다."); Object.keys(pending).forEach(pth=>{ clearTimeout(timers[pth]); retries[pth]=0; flush(pth); }); return; }
+  if(t.hasAttribute("data-token-save")){ const v=(document.getElementById("tokenIn")||{}).value||""; if(!v.trim()){ toast("비밀번호를 입력해 주세요."); return; } try{ localStorage.setItem(TOKEN_KEY,v.trim()); }catch(e){} S.needToken=false; render(); toast("비밀번호를 이 기기에 기억했습니다. 점수 입력 후 저장 상태를 확인해 주세요."); Object.keys(pending).forEach(pth=>{ clearTimeout(timers[pth]); retries[pth]=0; flush(pth); }); return; }
   if(t.hasAttribute("data-teacher-open")){ UI.teacherForm=true; render(); setTimeout(()=>{ const i=document.getElementById("teacherPw"); if(i) i.focus(); },0); return; }
   if(t.hasAttribute("data-teacher-x")){ UI.teacherForm=false; render(); return; }
   if(t.hasAttribute("data-teacher-go")){ const v=((document.getElementById("teacherPw")||{}).value||"").trim(); if(!v){ toast("비밀번호를 입력해 주세요."); return; } try{ localStorage.setItem(TOKEN_KEY,v); localStorage.setItem(ADMIN_KEY,"1"); }catch(e){} location.reload(); return; }
@@ -1674,9 +1674,10 @@ function commitSv(m,t){ const s=m.sets[+t.dataset.si], k=t.dataset.sv; if(!s || 
   s[k]=nv; delete s[k+"B"]; delete s[k+"G"]; s.pick=null; s.t=Date.now(); return true; }
 let toastT; function toast(m){ const el=document.getElementById("toast"); el.textContent=m; el.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove("show"),2600); }
 
-if("serviceWorker" in navigator && location.protocol==="https:" && !window.claude){ window.addEventListener("load",()=>{ navigator.serviceWorker.register("sw.js").catch(()=>{}); }); }
+
 initDb();
 })();
 </script>
+<footer style="text-align:center;padding:22px;font-size:14px"><a href="guide.html">사용 및 Google Sheets 연결 안내</a> · 곡선중 학교스포츠클럽</footer>
 </body>
 </html>
