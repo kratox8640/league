@@ -5,7 +5,7 @@
 
 ## 현재 연동
 
-dist/index.html의 SHEET_API에는 기존 웹 앱 주소가 연결되어 있습니다. 조회 응답은 확인됐으나 관리자 비밀번호를 이용한 실제 쓰기는 검증하지 않았습니다. 제공한 apps-script/Code.gs는 새로 설치하거나 이전할 때 쓰는 코드이며 현재 웹 앱을 변경하지 않습니다.
+index.html의 SHEET_API에는 기존 웹 앱 주소가 연결되어 있습니다. 조회 응답은 확인됐으나 관리자 비밀번호를 이용한 실제 쓰기는 검증하지 않았습니다. 제공한 apps-script/Code.gs는 새로 설치하거나 이전할 때 쓰는 코드이며 현재 웹 앱을 변경하지 않습니다.
 
 ## 사용
 
@@ -18,14 +18,13 @@ dist/index.html의 SHEET_API에는 기존 웹 앱 주소가 연결되어 있습�
 3. 프로젝트 설정 → 스크립트 속성에 ADMIN_TOKEN을 추가하고 긴 관리자 비밀번호를 지정합니다. 비밀번호를 GitHub에 올리지 마세요.
 4. setup 함수를 한 번 실행하고 권한을 허용합니다. 리그기록 시트가 자동 생성됩니다.
 5. 배포 → 새 배포 → 웹 앱. 실행 사용자는 ‘나’, 액세스는 ‘모든 사용자’로 선택합니다. 학교 계정 정책이 익명 액세스를 막으면 학교 관리자 확인이 필요합니다.
-6. /exec로 끝나는 웹 앱 주소를 dist/index.html의 SHEET_API에 넣습니다.
+6. /exec로 끝나는 웹 앱 주소를 index.html의 SHEET_API에 넣습니다.
 7. 점수를 입력하고 ‘저장됨’과 리그기록 시트의 행을 확인합니다. 시트에는 문서키, 기록 JSON, 수정시각이 저장됩니다.
 8. 코드 변경 후에는 배포 관리에서 새 버전으로 업데이트합니다.
 
 ## GitHub Pages
 
-이 폴더의 내용을 저장소에 올리고 Settings → Pages → Source를 GitHub Actions로 지정하세요. 포함된 .github/workflows/pages.yml이 main 변경 때 dist/를 배포합니다.
-기존 루트 index.html을 쓰는 Pages 구성에서는 dist/ 안의 파일을 루트에 복사해 사용할 수도 있습니다.
+현재 저장소는 루트 index.html 방식입니다. Settings → Pages → Build and deployment에서 Source를 Deploy from a branch, Branch를 main, 폴더를 / (root)로 지정하고 Save를 누르세요. 배포 후 Settings → Pages에 표시된 주소로 접속할 수 있습니다. Pages 설정과 배포 완료 여부는 이번 작업에서 확인하지 못했습니다.
 학생용 QR 주소는 교사 화면의 ‘학생 공개’에서 지정합니다.
 
 ## 운영
