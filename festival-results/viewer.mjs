@@ -1,0 +1,15 @@
+import {EVENTS,standings,keyFor,pointsFor} from './domain.mjs';
+const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let docs={},grade=0,event='rope',endpoint='',loading=false;
+$('#event').innerHTML=EVENTS.map(e=>'<option value="'+e.id+'">'+e.name+'</option>').join('');
+function draw(){
+ $('#grades').innerHTML=[0,1,2,3].map(g=>'<button data-grade="'+g+'" aria-pressed="'+(grade===g)+'">'+(g?g+'학년':'전체 학년')+'</button>').join('');
+ const rows=standings(docs,grade),confirmed=Object.values(docs).filter(r=>r.status==='confirmed'&&(!grade||r.grade===grade)).length;
+ $('#progress').textContent='확정된 경기 '+confirmed+' / '+(grade?9:27)+' · 잠정 순위';
+ $('#standings').innerHTML=rows.map(r=>'<tr><td><span class="rank '+(r.rank===1?'first':'')+'">'+(r.rank||'—')+'</span></td><th>'+r.grade+'학년 '+r.classNo+'반</th><td><strong>'+(r.completed?r.total.toLocaleString():'—')+'</strong> 점</td><td>'+r.completed+' / 9</td><td>'+(r.tug?r.tug+'위':'미확정')+'</td></tr>').join('');
+ const resultRows=[];for(const g of grade?[grade]:[1,2,3]){const r=docs[keyFor(g,event)];for(let c=1;c<=3;c++){const row=r?.status==='confirmed'?r.rows?.find(x=>x.classNo===c):null;resultRows.push('<tr><th>'+g+'학년 '+c+'반</th><td>'+(row?.rank?row.rank+'위':'미확정')+'</td><td>'+esc(row?.value||'—')+'</td><td>'+(row?.rank?pointsFor(event,row.rank)+'점':'—')+'</td></tr>');}}
+ $('#eventResults').innerHTML=resultRows.join('');
+}
+async function refresh(){if(loading)return;if(!endpoint){$('#status').textContent='저장 서버 연결 대기 중입니다. 운영본부가 연결을 마치면 확정된 결과를 확인할 수 있습니다.';$('#status').className='status warning';return;}loading=true;$('#refresh').disabled=true;try{const response=await fetch(endpoint+'?action=all&t='+Date.now(),{cache:'no-store',signal:AbortSignal.timeout(15000)});const data=await response.json();if(!data.ok||data.app!=='gokseon-festival-2026')throw Error('결과를 불러오지 못했습니다.');docs=Object.fromEntries(Object.entries(data.docs||{}).filter(([k,d])=>d.status==='confirmed'));draw();$('#status').textContent='최근 확인 '+new Intl.DateTimeFormat('ko-KR',{timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date())+' · 30초마다 갱신됩니다.';$('#status').className='status';}catch{ $('#status').textContent='연결이 지연되고 있습니다. 마지막으로 불러온 결과를 표시합니다. 잠시 후 다시 확인해 주세요.';$('#status').className='status warning';}finally{loading=false;$('#refresh').disabled=false;}}
+$('#refresh').onclick=refresh;$('#grades').addEventListener('click',e=>{const b=e.target.closest('button[data-grade]');if(b){grade=Number(b.dataset.grade);draw();}});$('#event').onchange=e=>{event=e.target.value;draw();};
+draw();try{const cfg=await(await fetch('connection.json',{cache:'no-store'})).json();const candidate=new URL(location.href).searchParams.get('api')||cfg.endpoint;if(candidate){const u=new URL(candidate);if(u.protocol==='https:'&&u.hostname==='script.google.com'&&/^\/macros\/s\/[a-zA-Z0-9_-]+\/exec$/.test(u.pathname))endpoint=u.origin+u.pathname;}}catch{}await refresh();setInterval(refresh,30000);
